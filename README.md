@@ -67,3 +67,15 @@ Internet <=(Http)>Reverse Proxy Server[IIS、Nginx、Apache]<=(Http)>Kestrel[dot
   
   commandName 命令名称
   launchBrowser 是否进行浏览器加载
+
+
+ASP.NET Core appsettings.json文件
+ASP.NET Core中的配置源
+	appsettings.json,appsettings.{Environment}.json,不同环境下对应不同的托管环境
+	
+	User secrets(用户机密)
+	Environment variables(环境变量)
+	Command-line arguments(命令行参数)
+
+访问配置信息
+	IConfiguration 配置接口
