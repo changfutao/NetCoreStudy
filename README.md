@@ -24,6 +24,32 @@ InProcess
 	3.获取执行应用程序的进程名称
 		//获取当前进程的名称
 		var processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+		
+什么是OutOfProcess托管
+	有2个Web服务器 - 内部Web服务器和外部Web服务器
+	内部Web服务器是Kestrel
+	外部Web服务器可以是IIS,Nginx或Apache
+	
+什么是Kestrel Web Server?
+	Kestrel是ASP.NET Core的跨平台Web服务器
+	Kestrel本身可以用作边缘服务器 
+	Kestrel中用于托管应用程序的进程是dotnet.exe
+	
+InProcess 进程内托管
+
+Internet <=(Http)> IIS[w3wp.exe[Application]]
+进程内托管
+	>该应用程序托管在IIS工作进程中
+	>只有一个Web服务器
+	>从性能角度来看,在进程托管中,优于进程外托管
+	
+Out-of-Process 进程外托管
+Kestrel可以用作面向Internet的Web服务器
+Internet <=(Http)> Kestrel[dotnet.exe[Application]]
+
+Kestrel还可以与反向代理服务器结合使用,例如IIS,Nginx或Apache
+Internet <=(Http)>Reverse Proxy Server[IIS、Nginx、Apache]<=(Http)>Kestrel[dotnet.exe[Application]]
+
 
 
  进程内(InProcess)和进程外(out-of-Process)托管的对比
