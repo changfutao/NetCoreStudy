@@ -29,8 +29,12 @@ namespace WebAPP1
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env,ILogger<Startup> logger)
         {
+            //开发环境
             if (env.IsDevelopment())
             {
+                //必须尽可能的在管道中提早注入 UseDeveloperExceptionPage 中间件，可以拦截异常
+                //异常展示包含 Stack Trace,Query String Cookies 和HTTP Headers
+                //用于自定义异常页面,可以使用DeveloperExceptionPageOptions对象
                 app.UseDeveloperExceptionPage();
             }
 
