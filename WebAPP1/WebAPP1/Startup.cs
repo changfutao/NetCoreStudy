@@ -22,14 +22,8 @@ namespace WebAPP1
         private readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
-            {
-                options.AddPolicy(MyAllowSpecificOrigins,
-                builder =>
-                {
-                    builder.WithOrigins("http://localhost:8080");
-                });
-            });
+            //注入MVC
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,12 +70,13 @@ namespace WebAPP1
             //5.默认支持的文件列表: index.html index.html default.html default.htm
             //6.UseDefaultFiles()必须注册在UseStaticFiles()前面
             //7.UseFileServer结合了UseStaticFiles、UseDefaultFiles和UseDirectoryBrowser中间件的功能
-            //UseFileServer 结合了 UseStaticFiles 、UseDefaultFiles 和 UseDirectoryBrowser中间件的功能(生产环境不推荐使用)
-            FileServerOptions fileServerOptions = new FileServerOptions();
-            fileServerOptions.DefaultFilesOptions.DefaultFileNames.Clear();
-            fileServerOptions.DefaultFilesOptions.DefaultFileNames.Add("a.html");
+            //UseFileServer 结合了 UseStaticFiles 、UseDefaultFiles 和 UseDirectoryBrowser(目录浏览不可以开放给用户)中间件的功能(生产环境不推荐使用)
 
-            app.UseFileServer(fileServerOptions);
+            //FileServerOptions fileServerOptions = new FileServerOptions();
+            //fileServerOptions.DefaultFilesOptions.DefaultFileNames.Clear();
+            //fileServerOptions.DefaultFilesOptions.DefaultFileNames.Add("a.html");
+
+            //app.UseFileServer(fileServerOptions);
 
             #region 默认清空所有index.html index.htm default.html default.htm,去找a.html
             //DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
@@ -99,10 +94,24 @@ namespace WebAPP1
             //app.UseStaticFiles(); 
             #endregion
 
-            app.Run(async (context) => 
+            //app.Run(async (context) => 
+            //{
+            //   await context.Response.WriteAsync("hello world");
+            //});
+
+
+            #region 设置允许跨域
+            //设置允许跨域
+            app.UseCors(builder =>
             {
-               await context.Response.WriteAsync("hello world");
-            });
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+                builder.WithOrigins("http://localhost:6688");
+            }); 
+            #endregion
+
+            //添加MVC中间件
+            app.UseMvcWithDefaultRoute();
 
       
 
