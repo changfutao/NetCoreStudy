@@ -29,13 +29,17 @@ namespace WebAPP1
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env,ILogger<Startup> logger)
         {
-            //开发环境
+            //开发环境(Development) 集成环境(Integration) 测试环境(testing) QA验证 模拟环境 生产环境
             if (env.IsDevelopment())
             {
                 //必须尽可能的在管道中提早注入 UseDeveloperExceptionPage 中间件，可以拦截异常
                 //异常展示包含 Stack Trace,Query String Cookies 和HTTP Headers
                 //用于自定义异常页面,可以使用DeveloperExceptionPageOptions对象
                 app.UseDeveloperExceptionPage();
+            }
+            else if(env.IsProduction() || env.IsStaging()) //生产环境和模拟环境
+            {
+                app.UseExceptionHandler("/Error");
             }
 
             #region 中间件
@@ -98,10 +102,12 @@ namespace WebAPP1
             //app.UseStaticFiles(); 
             #endregion
 
-            //app.Run(async (context) => 
-            //{
-            //   await context.Response.WriteAsync("hello world");
-            //});
+            app.Run(async (context) =>
+            {
+                //await context.Response.WriteAsync("hello world");
+                //获取当前运行环境的变量值(操作系统的环境变量 < launchSettings.json 优先级 ,如果两个都没有默认是Production)
+                await context.Response.WriteAsync("Hosting Environment:" + env.EnvironmentName);
+            });
 
 
             #region 设置允许跨域
