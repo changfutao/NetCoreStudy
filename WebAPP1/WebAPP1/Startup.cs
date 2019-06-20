@@ -24,6 +24,17 @@ namespace WebAPP1
         {
             //注入MVC
             services.AddMvc();
+            //.AddMvcCore()方法只会添加最核心的MVC服务
+            //.AddMvc()方法添加了所有必需的MVC服务
+            //.AddMvc()方法会在内部调用AddMvcCore()方法
+
+            //ASP.NET Core 依赖注入容器注册服务
+            //.AddSingleton()
+            //.AddTransient()
+            //.AddScoped()
+            //依赖注入的亮点
+            //低耦合
+            //提供了高测试性,使单元测试更加的容易
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
