@@ -11,11 +11,14 @@ namespace WebAPP1.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+        //请求地址就会是 http://xxx/api/User/GetUsers
         [Route("GetUsers")]
         public List<string>GetUsers()
         {
             List<string> list = new List<string>() { "111","222","333"};
             return list;
         }
+
+
     }
 }

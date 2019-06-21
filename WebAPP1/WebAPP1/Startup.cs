@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,12 @@ namespace WebAPP1
         public void ConfigureServices(IServiceCollection services)
         {
             //注入MVC
-            services.AddMvc();
+            services.AddMvc(options=> {
+                //配置输出xml格式
+                options.ReturnHttpNotAcceptable = true;
+                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            });
+                    
             //.AddMvcCore()方法只会添加最核心的MVC服务
             //.AddMvc()方法添加了所有必需的MVC服务
             //.AddMvc()方法会在内部调用AddMvcCore()方法
@@ -82,6 +88,8 @@ namespace WebAPP1
             #endregion
 
             #region 静态文件中间件
+            app.UseStaticFiles();
+
             //1.ASP.NET Core默认不支持 静态文件的服务
             //2.默认的静态服务文件夹为wwwroot
             //3.要使用静态文件,必须使用UseStaticFiles()中间件
@@ -113,12 +121,12 @@ namespace WebAPP1
             //app.UseStaticFiles(); 
             #endregion
 
-            app.Run(async (context) =>
-            {
-                //await context.Response.WriteAsync("hello world");
-                //获取当前运行环境的变量值(操作系统的环境变量 < launchSettings.json 优先级 ,如果两个都没有默认是Production)
-                await context.Response.WriteAsync("Hosting Environment:" + env.EnvironmentName);
-            });
+            //app.Run(async (context) =>
+            //{
+            //    //await context.Response.WriteAsync("hello world");
+            //    //获取当前运行环境的变量值(操作系统的环境变量 < launchSettings.json 优先级 ,如果两个都没有默认是Production)
+            //    await context.Response.WriteAsync("Hosting Environment:" + env.EnvironmentName);
+            //});
 
 
             #region 设置允许跨域
@@ -128,10 +136,15 @@ namespace WebAPP1
                 builder.AllowAnyHeader();
                 builder.AllowAnyMethod();
                 builder.WithOrigins("http://localhost:6688");
-            }); 
+            });
             #endregion
 
-            //添加MVC中间件
+            //使用cookie
+            app.UseCookiePolicy();
+            //返回错误码
+            app.UseStatusCodePages(); //把错误码返回前台,比如404
+
+            //添加MVC中间件(默认模板: '{controller=Home}/{action=Index}/{id?}')
             app.UseMvcWithDefaultRoute();
 
       
