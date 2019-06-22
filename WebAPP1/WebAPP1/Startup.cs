@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace WebAPP1
 {
@@ -20,7 +22,6 @@ namespace WebAPP1
         {
             _configuration = configuration;
         }
-        private readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public void ConfigureServices(IServiceCollection services)
         {
             //注入MVC
@@ -29,10 +30,31 @@ namespace WebAPP1
                 options.ReturnHttpNotAcceptable = true;
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             });
-                    
+
             //.AddMvcCore()方法只会添加最核心的MVC服务
             //.AddMvc()方法添加了所有必需的MVC服务
             //.AddMvc()方法会在内部调用AddMvcCore()方法
+
+            #region Swagger
+            services.AddSwaggerGen(c => 
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Version ="v0.1.0",
+                    Title="Net Core Study",
+                    Description="测试",
+                    TermsOfService="None",
+                    Contact= new Swashbuckle.AspNetCore.Swagger.Contact { Name = "Blog.Core", Email = "Blog.Core@xxx.com", Url = "https://www.jianshu.com/u/94102b59cc2a" }
+                });
+
+                var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
+                var xmlPath = Path.Combine(basePath, "WebAPP1.xml");//这个就是刚刚配置的xml文件名
+                c.IncludeXmlComments(xmlPath, true);//默认的第二个参数是false，这个是controller的注释，记得修改
+
+                var xmlModelPath = Path.Combine(basePath, "WebAPP1.Models.xml"); //这个就是Model层的xml文件名
+                c.IncludeXmlComments(xmlModelPath);
+            });
+            #endregion
 
             //ASP.NET Core 依赖注入容器注册服务
             //.AddSingleton()
@@ -43,21 +65,38 @@ namespace WebAPP1
             //提供了高测试性,使单元测试更加的容易
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env,ILogger<Startup> logger)
         {
             //开发环境(Development) 集成环境(Integration) 测试环境(testing) QA验证 模拟环境 生产环境
             if (env.IsDevelopment())
             {
+                // 在开发环境中，使用异常页面，这样可以暴露错误堆栈信息，所以不要放在生产环境。
                 //必须尽可能的在管道中提早注入 UseDeveloperExceptionPage 中间件，可以拦截异常
                 //异常展示包含 Stack Trace,Query String Cookies 和HTTP Headers
                 //用于自定义异常页面,可以使用DeveloperExceptionPageOptions对象
                 app.UseDeveloperExceptionPage();
+
+                #region Swagger(文档展示)
+                app.UseSwagger();
+                app.UseSwaggerUI(c => {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ApiHelp V1");
+                    //路径配置,设置为空,表示直接访问该文件
+                    //路径配置，设置为空，表示直接在根域名（localhost:8001）访问该文件,注意localhost:8001/swagger是访问不到的，
+                    //这个时候去launchSettings.json中把"launchUrl": "swagger/index.html"去掉， 然后直接访问localhost:8001/index.html即可
+                    c.RoutePrefix = "";
+
+                });
+                #endregion
             }
             else if(env.IsProduction() || env.IsStaging()) //生产环境和模拟环境
             {
                 app.UseExceptionHandler("/Error");
+
+                // 在非开发环境中，使用HTTP严格安全传输(or HSTS) 对于保护web安全是非常重要的。
+                // 强制实施 HTTPS 在 ASP.NET Core，配合 app.UseHttpsRedirection
+                //app.UseHsts();
             }
+
 
             #region 中间件
             //app.Use(async (context, next) =>
