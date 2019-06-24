@@ -341,6 +341,21 @@ namespace WebAPP1.Repository
             throw new NotImplementedException();
         }
 
+        public Task<int> ExecuteSqlAsync(string sql)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int ExecuteSql(string sql, List<DbParameter> spList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> ExecuteSqlAsync(string sql, List<DbParameter> spList)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
