@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPP1.Models;
@@ -19,6 +20,7 @@ namespace WebAPP1.Controllers
         //请求地址就会是 http://xxx/api/User/GetUsers
         [Route("GetUsers")]
         [HttpGet]
+        [Authorize]
         public ObjectResult GetUsers()
         {
             List<string> list = new List<string>() { "111","222","333"};
