@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using WebAPP1.AuthHelper;
+using WebAPP1.Models;
 
 namespace WebAPP1
 {
@@ -68,28 +69,53 @@ namespace WebAPP1
             //低耦合
             //提供了高测试性,使单元测试更加的容易
 
+            //读取JwtSettings配置
+            services.Configure<JwtSettings>(_configuration);
+            var jwtSettings = new JwtSettings();
+            _configuration.Bind("jwtSettings",jwtSettings);
+            #region JWT注入服务
+            //1.
             //添加jwt验证:
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuer=true, //是否验证Issuer
-                            ValidateAudience=true, //是否验证Audience
-                            ValidateLifetime =true, //是否验证失效时间
-                            ClockSkew=TimeSpan.FromSeconds(30),
-                            ValidateIssuerSigningKey=true, //是否验证SecurityKey
-                            ValidAudience=Const.Domain, //Audience
-                            ValidIssuer = Const.Domain, //Issuer 这两项和前面签发jwt的设置一致
-                            IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Const.SecurityKey)) //拿到SecurityKey
-                        };
-                    });
+            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            //        .AddJwtBearer(options =>
+            //        {
+            //            options.TokenValidationParameters = new TokenValidationParameters
+            //            {
+            //                ValidateIssuer = true, //是否验证Issuer
+            //                ValidateAudience = true, //是否验证Audience
+            //                ValidateLifetime = true, //是否验证失效时间
+            //                ClockSkew = TimeSpan.FromSeconds(30),
+            //                ValidateIssuerSigningKey = true, //是否验证SecurityKey
+            //                ValidAudience = Const.Domain, //Audience
+            //                ValidIssuer = Const.Domain, //Issuer 这两项和前面签发jwt的设置一致
+            //                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Const.SecurityKey)) //拿到SecurityKey
+            //            };
+            //        }); 
+
+            //2
+            services.AddAuthentication(options =>
+            {
+                //认证的配置
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(o => 
+            {
+                //jwt的配置
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                     ValidIssuer = jwtSettings.Issuer,
+                     ValidAudience=jwtSettings.Audience,
+                    IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                };
+            });
+
+            #endregion
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env,ILogger<Startup> logger)
         {
-            //添加jwt验证中间件
-            app.UseAuthentication();
+          
             //开发环境(Development) 集成环境(Integration) 测试环境(testing) QA验证 模拟环境 生产环境
             if (env.IsDevelopment())
             {
@@ -119,7 +145,8 @@ namespace WebAPP1
                 // 强制实施 HTTPS 在 ASP.NET Core，配合 app.UseHttpsRedirection
                 //app.UseHsts();
             }
-
+            //添加jwt验证中间件
+            app.UseAuthentication();
 
             #region 中间件
             //app.Use(async (context, next) =>

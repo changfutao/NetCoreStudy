@@ -94,5 +94,20 @@
             <param name="user"></param>
             <returns></returns>
         </member>
+        <member name="P:WebAPP1.Models.JwtSettings.Issuer">
+            <summary>
+            Token颁发者
+            </summary>
+        </member>
+        <member name="P:WebAPP1.Models.JwtSettings.Audience">
+            <summary>
+            TOken给哪些客户端使用
+            </summary>
+        </member>
+        <member name="P:WebAPP1.Models.JwtSettings.SecretKey">
+            <summary>
+            加密Key
+            </summary>
+        </member>
     </members>
 </doc>
