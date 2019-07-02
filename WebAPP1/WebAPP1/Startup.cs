@@ -30,7 +30,8 @@ namespace WebAPP1
         public void ConfigureServices(IServiceCollection services)
         {
             //注入MVC
-            services.AddMvc(options=> {
+            services.AddMvc(options =>
+            {
                 //配置输出xml格式
                 options.ReturnHttpNotAcceptable = true;
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
@@ -41,15 +42,15 @@ namespace WebAPP1
             //.AddMvc()方法会在内部调用AddMvcCore()方法
 
             #region Swagger
-            services.AddSwaggerGen(c => 
+            services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info
                 {
-                    Version ="v0.1.0",
-                    Title="Net Core Study",
-                    Description="测试",
-                    TermsOfService="None",
-                    Contact= new Swashbuckle.AspNetCore.Swagger.Contact { Name = "Blog.Core", Email = "Blog.Core@xxx.com", Url = "https://www.jianshu.com/u/94102b59cc2a" }
+                    Version = "v0.1.0",
+                    Title = "Net Core Study",
+                    Description = "测试",
+                    TermsOfService = "None",
+                    Contact = new Swashbuckle.AspNetCore.Swagger.Contact { Name = "Blog.Core", Email = "Blog.Core@xxx.com", Url = "https://www.jianshu.com/u/94102b59cc2a" }
                 });
 
                 var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
@@ -69,10 +70,7 @@ namespace WebAPP1
             //低耦合
             //提供了高测试性,使单元测试更加的容易
 
-            //读取JwtSettings配置
-            services.Configure<JwtSettings>(_configuration);
-            var jwtSettings = new JwtSettings();
-            _configuration.Bind("jwtSettings",jwtSettings);
+
             #region JWT注入服务
             //1.
             //添加jwt验证:
@@ -93,29 +91,34 @@ namespace WebAPP1
             //        }); 
 
             //2
+            //读取JwtSettings配置
+            services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
+            var jwtSettings = new JwtSettings();
+            _configuration.Bind("jwtSettings", jwtSettings);
+
             services.AddAuthentication(options =>
             {
                 //认证的配置
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(o => 
+            .AddJwtBearer(o =>
             {
                 //jwt的配置
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                     ValidIssuer = jwtSettings.Issuer,
-                     ValidAudience=jwtSettings.Audience,
-                    IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidAudience = jwtSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
                 };
             });
 
             #endregion
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env,ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILogger<Startup> logger)
         {
-          
+
             //开发环境(Development) 集成环境(Integration) 测试环境(testing) QA验证 模拟环境 生产环境
             if (env.IsDevelopment())
             {
@@ -127,7 +130,8 @@ namespace WebAPP1
 
                 #region Swagger(文档展示)
                 app.UseSwagger();
-                app.UseSwaggerUI(c => {
+                app.UseSwaggerUI(c =>
+                {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ApiHelp V1");
                     //路径配置,设置为空,表示直接访问该文件
                     //路径配置，设置为空，表示直接在根域名（localhost:8001）访问该文件,注意localhost:8001/swagger是访问不到的，
@@ -137,7 +141,7 @@ namespace WebAPP1
                 });
                 #endregion
             }
-            else if(env.IsProduction() || env.IsStaging()) //生产环境和模拟环境
+            else if (env.IsProduction() || env.IsStaging()) //生产环境和模拟环境
             {
                 app.UseExceptionHandler("/Error");
 
@@ -236,7 +240,7 @@ namespace WebAPP1
             //添加MVC中间件(默认模板: '{controller=Home}/{action=Index}/{id?}')
             app.UseMvcWithDefaultRoute();
 
-      
+
 
 
         }
