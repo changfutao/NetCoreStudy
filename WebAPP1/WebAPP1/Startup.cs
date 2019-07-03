@@ -95,24 +95,33 @@ namespace WebAPP1
             services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
             var jwtSettings = new JwtSettings();
             _configuration.Bind("jwtSettings", jwtSettings);
-
+            //设定用哪种方式验证Http Request是否合法
             services.AddAuthentication(options =>
             {
                 //认证的配置
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
+            //设定JWT Bearer Token的检查选项
             .AddJwtBearer(o =>
             {
                 //jwt的配置
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateIssuer=true, //是否验证Issuer
                     ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience =true, //是否验证Audience
                     ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime =true,//是否验证失效时间
+                    ClockSkew = TimeSpan.FromSeconds(30), //获取或设置验证时间时要应用的时钟偏差
+                    ValidateIssuerSigningKey =true, //是否验证SecurityKey
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
                 };
             });
 
+            #endregion
+
+            #region 注入实体类
             #endregion
         }
 
@@ -149,7 +158,7 @@ namespace WebAPP1
                 // 强制实施 HTTPS 在 ASP.NET Core，配合 app.UseHttpsRedirection
                 //app.UseHsts();
             }
-            //添加jwt验证中间件
+            //添加jwt验证中间件(使用验证权限的 Middleware)
             app.UseAuthentication();
 
             #region 中间件
