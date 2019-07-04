@@ -17,7 +17,7 @@ namespace WebAPP1.AuthHelper
     {
         public static string IssueJwt(TokenModelJwt tokenModel)
         {
-            string audience=AppSettings.app(new string[] { "JwtSettings", "Audience" });
+            string audience = AppSettings.app(new string[] { "JwtSettings", "Audience" });
             string issuer = AppSettings.app(new string[] { "JwtSettings", "Issuer" });
             string secretKey = AppSettings.app(new string[] { "JwtSettings", "SecretKey" });
 
@@ -37,7 +37,7 @@ namespace WebAPP1.AuthHelper
                 new Claim(JwtRegisteredClaimNames.Aud,audience)
             };
 
-            //可以江一个用户得多个角色全部赋予
+            //可以将一个用户得多个角色全部赋予
             claims.AddRange(tokenModel.Role.Split(',').Select(s => new Claim(ClaimTypes.Role, s)));
 
             //秘钥 (SymmetricSecurityKey 对安全性的要求，密钥的长度太短会报出异常)
@@ -53,6 +53,29 @@ namespace WebAPP1.AuthHelper
             var encodedJwt = jwtHandler.WriteToken(jwt);
 
             return encodedJwt;
+        }
+
+        public static TokenModelJwt SerializeJwt(string jwtStr)
+        {
+            var jwtHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken jwtToken=jwtHandler.ReadJwtToken(jwtStr);
+            object role;
+            try
+            {
+                jwtToken.Payload.TryGetValue(ClaimTypes.Role, out role);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
+
+            var tm = new TokenModelJwt()
+            {
+                Uid=long.Parse(jwtToken.Id),
+                Role=role != null?role.ToString():""
+            };
+            return tm;
         }
     }
 }

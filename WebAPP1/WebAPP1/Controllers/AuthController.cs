@@ -83,5 +83,6 @@ namespace WebAPP1.Controllers
             var serializeToken = tokenHandler.WriteToken(securityToken);
             return new ContentResult() { Content=serializeToken};
         }
+
     }
 }
