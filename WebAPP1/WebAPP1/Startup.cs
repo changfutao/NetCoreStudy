@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using WebAPP1.AuthHelper;
 using WebAPP1.Models;
+using static WebAPP1.SwaggerHelper.CustomApiVersion;
 
 namespace WebAPP1
 {
@@ -27,38 +28,55 @@ namespace WebAPP1
         {
             _configuration = configuration;
         }
+        private const string ApiName = "Blog.Core";
         public void ConfigureServices(IServiceCollection services)
         {
-            //注入MVC
-            services.AddMvc(options =>
-            {
-                //配置输出xml格式
-                options.ReturnHttpNotAcceptable = true;
-                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            });
+           
 
-            //.AddMvcCore()方法只会添加最核心的MVC服务
-            //.AddMvc()方法添加了所有必需的MVC服务
-            //.AddMvc()方法会在内部调用AddMvcCore()方法
-
-            #region Swagger
+            #region Swagger UI Service
+            var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info
+                //遍历出全部的版本,做文档信息展示
+                typeof(ApiVersions).GetEnumNames().ToList().ForEach(version => 
                 {
-                    Version = "v0.1.0",
-                    Title = "Net Core Study",
-                    Description = "测试",
-                    TermsOfService = "None",
-                    Contact = new Swashbuckle.AspNetCore.Swagger.Contact { Name = "Blog.Core", Email = "Blog.Core@xxx.com", Url = "https://www.jianshu.com/u/94102b59cc2a" }
+                    c.SwaggerDoc(version, new Info
+                    {
+                        // {ApiName} 定义成全局变量，方便修改
+                        Version = version,
+                        Title = $"{ApiName} 接口文档",
+                        Description = $"{ApiName} HTTP API " + version,
+                        TermsOfService = "None",
+                        Contact = new Contact { Name = "Blog.Core", Email = "Blog.Core@xxx.com", Url = "https://www.jianshu.com/u/94102b59cc2a" }
+                    });
+                    //按相对路径排序
+                    c.OrderActionsBy(o => o.RelativePath);
                 });
+            
 
-                var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
+                #region 读取xml信息
                 var xmlPath = Path.Combine(basePath, "WebAPP1.xml");//这个就是刚刚配置的xml文件名
                 c.IncludeXmlComments(xmlPath, true);//默认的第二个参数是false，这个是controller的注释，记得修改
 
                 var xmlModelPath = Path.Combine(basePath, "WebAPP1.Models.xml"); //这个就是Model层的xml文件名
                 c.IncludeXmlComments(xmlModelPath);
+                #endregion
+
+                #region Token绑定到ConfigureServices
+                //添加header验证信息
+                var security=new Dictionary<string, IEnumerable<string>> { { "Blog.Core", new string[] { } } };
+                c.AddSecurityRequirement(security);
+                //方案名称"Blog.Core"可自定义,上下一致即可
+                c.AddSecurityDefinition("Blog.Core", new ApiKeyScheme
+                {
+                    Description = "JWT授权(数据将在请求头中进行传输)直接在下拉框中输入Bearer {token}(注意两者之间是一个空格)",
+                    Name = "Authorization",//jwt默认的参数名称
+                    In="header", //jwt默认存放Authorization信息的位置(请求头中)
+                    Type="apiKey"
+                });
+                #endregion
+
+
             });
             #endregion
 
@@ -90,29 +108,53 @@ namespace WebAPP1
             //            };
             //        }); 
 
-            //2
-            //读取JwtSettings配置
-            services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
-            var jwtSettings = new JwtSettings();
-            _configuration.Bind("jwtSettings", jwtSettings);
+            ////2
+            ////读取JwtSettings配置
+            //services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
+            //var jwtSettings = new JwtSettings();
+            //_configuration.Bind("jwtSettings", jwtSettings);
+            ////设定用哪种方式验证Http Request是否合法
+            //services.AddAuthentication(options =>
+            //{
+            //    //认证的配置
+            //    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //})
+            ////设定JWT Bearer Token的检查选项
+            //.AddJwtBearer(o =>
+            //{
+            //    //jwt的配置
+            //    o.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuer=true, //是否验证Issuer
+            //        ValidIssuer = jwtSettings.Issuer,
+            //        ValidateAudience =true, //是否验证Audience
+            //        ValidAudience = jwtSettings.Audience,
+            //        ValidateLifetime =true,//是否验证失效时间
+            //        ClockSkew = TimeSpan.FromSeconds(30), //获取或设置验证时间时要应用的时钟偏差
+            //        ValidateIssuerSigningKey =true, //是否验证SecurityKey
+            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+            //    };
+            //});
 
-            services.AddAuthentication(options =>
+            #endregion
+
+            #region MVC + GlobalExceptions
+            //注入全局异常捕获
+            services.AddMvc(options =>
             {
-                //认证的配置
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(o =>
-            {
-                //jwt的配置
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidIssuer = jwtSettings.Issuer,
-                    ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
-                };
+                //options.Filters.Add(typeof(GlobalExceptionsFilter))
+                //配置输出xml格式
+                options.ReturnHttpNotAcceptable = true;
+                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             });
 
+            //.AddMvcCore()方法只会添加最核心的MVC服务
+            //.AddMvc()方法添加了所有必需的MVC服务
+            //.AddMvc()方法会在内部调用AddMvcCore()方法 
+            #endregion
+
+            #region 注入实体类
             #endregion
         }
 
@@ -149,8 +191,8 @@ namespace WebAPP1
                 // 强制实施 HTTPS 在 ASP.NET Core，配合 app.UseHttpsRedirection
                 //app.UseHsts();
             }
-            //添加jwt验证中间件
-            app.UseAuthentication();
+            //添加jwt验证中间件(使用验证权限的 Middleware)
+            //app.UseAuthentication();
 
             #region 中间件
             //app.Use(async (context, next) =>

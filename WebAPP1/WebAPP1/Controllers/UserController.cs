@@ -20,7 +20,8 @@ namespace WebAPP1.Controllers
         //请求地址就会是 http://xxx/api/User/GetUsers
         [Route("GetUsers")]
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles ="Admin")]
+        [Authorize(Roles ="System")]
         public ObjectResult GetUsers()
         {
             List<string> list = new List<string>() { "111","222","333"};
