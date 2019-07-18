@@ -129,6 +129,26 @@
             加密Key
             </summary>
         </member>
+        <member name="T:WebAPP1.Models.TokenModelJwt">
+            <summary>
+            令牌
+            </summary>
+        </member>
+        <member name="P:WebAPP1.Models.TokenModelJwt.Uid">
+            <summary>
+            Id
+            </summary>
+        </member>
+        <member name="P:WebAPP1.Models.TokenModelJwt.Role">
+            <summary>
+            角色
+            </summary>
+        </member>
+        <member name="P:WebAPP1.Models.TokenModelJwt.Work">
+            <summary>
+            职能
+            </summary>
+        </member>
         <member name="T:WebAPP1.SwaggerHelper.CustomApiVersion">
             <summary>
             自定义版本

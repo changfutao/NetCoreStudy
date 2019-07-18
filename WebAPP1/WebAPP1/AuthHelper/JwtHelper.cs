@@ -10,7 +10,7 @@ namespace WebAPP1.AuthHelper
     {
         public static string IssueJwt(TokenModelJwt tokenModelJwt)
         {
-            
+            return "";            
         }
     }
 }

@@ -31,7 +31,19 @@ namespace WebAPP1
         private const string ApiName = "Blog.Core";
         public void ConfigureServices(IServiceCollection services)
         {
-           
+            #region 选项配置IOptionsMonitor、IOptions
+            //1.常规选项配置
+            services.Configure<MyOptions>(_configuration);
+            //2.通过委托配置简单选项(设置默认值)
+            //services.Configure<MySubject>(options => 
+            //{
+            //    options.option1 = "haha1";
+            //    options.option2 = "haha2";
+            //});
+
+            //3.子选项配置
+            services.Configure<MySubject>(_configuration.GetSection("mysubject"));
+            #endregion
 
             #region Swagger UI Service
             var basePath = Microsoft.DotNet.PlatformAbstractions.ApplicationEnvironment.ApplicationBasePath;
